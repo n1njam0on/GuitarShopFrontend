@@ -10,14 +10,14 @@ import { AuthData } from '../types/auth-data-type.js';
 import { User } from '../types/user-type.js';
 import { AccessToken } from '../types/access-token-type.js';
 
-export const fetchGuitarsAction = createAsyncThunk<void, undefined, {
+export const fetchGuitarsAction = createAsyncThunk<void, string, {
   dispatch: AppDispatch;
   state: State;
   extra: AxiosInstance;
 }>(
   'data/fetchGuitars',
-  async (_arg, { dispatch, extra: api }) => {
-    const { data } = await api.get<Guitar[]>(APIRoute.Guitars);
+  async (query, { dispatch, extra: api }) => {
+    const { data } = await api.get<Guitar[]>(`${APIRoute.Guitars}/${query}`);
     console.log(data);// eslint-disable-line
     dispatch(loadGuitars(data));
   },

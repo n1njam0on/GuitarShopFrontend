@@ -13,7 +13,7 @@ function Header(): JSX.Element {
 
   const signOutHandler = () => {
     dropToken();
-    dispatch(fetchGuitarsAction());
+    dispatch(fetchGuitarsAction(''));
   };
 
   return (
