@@ -8,6 +8,7 @@ import { AppRoute } from '../../const';
 import { Link } from 'react-router-dom';
 
 const PASSWORD_MIN_LENGTH = 6;
+const PASSWORD_MAX_LENGTH = 12;
 
 function Login(): JSX.Element {
   const loginRef = useRef<HTMLInputElement | null>(null);
@@ -22,7 +23,7 @@ function Login(): JSX.Element {
   const handleSubmit = (evt: FormEvent<HTMLFormElement>) => {
     evt.preventDefault();
 
-    if (loginRef.current !== null && passwordRef.current !== null && passwordRef.current.value.length >= PASSWORD_MIN_LENGTH){
+    if (loginRef.current !== null && passwordRef.current !== null) {
       onSubmit({
         login: loginRef.current.value,
         password: passwordRef.current.value,
@@ -32,7 +33,7 @@ function Login(): JSX.Element {
 
   return (
     <div>
-      <Header/>
+      <Header />
       <main className="page-content">
         <div className="container">
           <section className="login">
@@ -47,7 +48,7 @@ function Login(): JSX.Element {
               <div className="input-login">
                 <label htmlFor="passwordLogin">Введите пароль</label>
                 <span>
-                  <input ref={passwordRef} type="password" placeholder="• • • • • • • • • • • •" id="passwordLogin" name="password" autoComplete="off" required />
+                  <input ref={passwordRef} type="password" placeholder="• • • • • • • • • • • •" id="passwordLogin" name="password" autoComplete="off" required minLength={PASSWORD_MIN_LENGTH} maxLength={PASSWORD_MAX_LENGTH} />
                   <button className="input-login__button-eye" type="button">
                     <svg width="14" height="8" aria-hidden="true">
                       <use xlinkHref="#icon-eye"></use>
@@ -61,7 +62,7 @@ function Login(): JSX.Element {
           </section>
         </div>
       </main>
-      <Footer/>
+      <Footer />
     </div>
   );
 }

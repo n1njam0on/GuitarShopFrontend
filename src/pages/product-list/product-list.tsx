@@ -10,36 +10,55 @@ import { GuitarType } from '../../types/guitar-type.enum';
 import { StringsNumber } from '../../types/strings-number.enum';
 import { SortType } from '../../types/sort-type.enum';
 import { SortDirection } from '../../types/sort-diretion.enum';
+import { countArrayLength } from '../../utils/utils';
 
 const MAX_GUITARS_NUMBER_PER_QUERY = 21;
 const MAX_GUITARS_NUMBER_PER_PAGE = 7;
+const MAX_NUMBER_PAGES = 3;
+const GUITAR_MAX_LIMIT = 1000;
+
+const arrayRange = (start: number, stop: number, step: number) => Array.from({ length: (stop - start) / step + 1 }, (value, index) => start + index);
 
 function ProductList(): JSX.Element {
 
   const dispatch = useAppDispatch();
-  const guitars = useAppSelector((state) => state.guitars);
-  const guitarsQuantity = guitars.length;
-  if(guitarsQuantity > MAX_GUITARS_NUMBER_PER_PAGE){
-
-    console.log(guitars);// eslint-disable-line
-  }
-
+  const guitarsMain = useAppSelector((state) => state.guitars);
+  const guitarsQuantity = guitarsMain.length;
 
   const [guitarTypes, setGuitarType] = useState<string[]>([]);
   const [stringsNumber, setStringsNumber] = useState<string[]>([]);
   const [sortType, setSortType] = useState<SortType>(SortType.Date);
   const [sortDirection, setSortDirection] = useState<SortDirection>(SortDirection.Desc);
-  /* const [pageNumber, setPageNumber] = useState(1);
-  const [pagesAmount, setPagesAmount] = useState([1,2,3]);*/
+  const [currentPage, setCurrentPage] = useState(1);
+  const [nextCount, setNextCount] = useState(0);
 
-  useEffect(() => {
-    let query = `?limit=${MAX_GUITARS_NUMBER_PER_QUERY}`;
-    query += guitarTypes.length ? `guitarType=${guitarTypes.join()}` : '';
+  const guitars = guitarsMain.slice((currentPage - 1) * MAX_GUITARS_NUMBER_PER_PAGE, MAX_GUITARS_NUMBER_PER_PAGE * currentPage);
+
+  const maxNextCount = countArrayLength(guitarsQuantity, MAX_GUITARS_NUMBER_PER_QUERY) + 1;
+
+  let paginationArray;
+  if (((nextCount * 3) + 2) * MAX_GUITARS_NUMBER_PER_PAGE > guitarsMain.length) {
+    const difference = guitarsMain.length - (nextCount * MAX_NUMBER_PAGES) * MAX_GUITARS_NUMBER_PER_PAGE;
+    const extraPages = countArrayLength(difference, MAX_GUITARS_NUMBER_PER_PAGE);
+    paginationArray = arrayRange((nextCount * MAX_NUMBER_PAGES) + 1, (nextCount * MAX_NUMBER_PAGES) + extraPages + 1, 1);
+  } else {
+    paginationArray = arrayRange((nextCount * MAX_NUMBER_PAGES) + 1, (nextCount * MAX_NUMBER_PAGES) + MAX_NUMBER_PAGES, 1);
+  }
+
+
+  const makeRequest = async () => {
+    let query = sortDirection === SortDirection.Desc ? '?sortDirection=desc' : '?sortDirection=asc';
+    query += guitarTypes.length ? `&guitarType=${guitarTypes.join()}` : '';
     query += stringsNumber.length ? `&stringsNumber=${stringsNumber.join()}` : '';
     query += sortType === SortType.Price ? '&price=on' : '';
-    query += sortDirection === SortDirection.Desc ? '&sortDirection=desc' : '&sortDirection=asc';
-    console.log(query);// eslint-disable-line
-    dispatch(fetchGuitarsAction(query));
+    query += `&limit=${GUITAR_MAX_LIMIT}`;
+    await dispatch(fetchGuitarsAction(query));
+  };
+
+  useEffect(() => {
+    makeRequest();
+    setCurrentPage(1);
+    setNextCount(0);
   }, [guitarTypes, stringsNumber, sortType, sortDirection]);// eslint-disable-line
 
   const guitarTypeHandler = (evt: ChangeEvent) => {
@@ -57,19 +76,11 @@ function ProductList(): JSX.Element {
     const type = evt.target.getAttribute('name');
     if (type) {
       if (stringsNumber.includes(type)) {
-        if (type === StringsNumber.Four) {
-          setGuitarType((prevState) => prevState.filter((item) => item !== GuitarType.Ukulele));
-        }
         setStringsNumber((prevState) => prevState.filter((item) => item !== type));
       } else {
-        if (type === StringsNumber.Four) {
-          setGuitarType((prevState) => prevState.filter((item) => item !== GuitarType.Acoustic));
-        }
-        if (type === StringsNumber.Twelve) {
-          setGuitarType((prevState) => prevState.filter((item) => item === GuitarType.Acoustic));
-        }
         setStringsNumber((prevState) => [...prevState, type]);
       }
+      setGuitarType([]);
     }
   };
 
@@ -92,6 +103,11 @@ function ProductList(): JSX.Element {
   const clearButtonHandler = () => {
     setGuitarType([]);
     setStringsNumber([]);
+  };
+
+  const nextPaginationHandler = () => {
+    setNextCount((prev) => prev + 1);
+    setCurrentPage(((nextCount + 1) * MAX_NUMBER_PAGES) + 1);
   };
 
   return (
@@ -168,12 +184,12 @@ function ProductList(): JSX.Element {
                             <div className="catalog-item__data-wrapper">
                               <a className="link" href="./product.html"><p className="catalog-item__data-title">{`${guitar.title}`}</p></a>
                               <br />
-                              <p className="catalog-item__data-date">{`Дата добавления ${dayjs(guitar.createdAt).format('DD-MM-YYYY')}`}</p>
+                              <p className="catalog-item__data-date">{`Дата добавления ${dayjs(guitar.creationDate).format('DD-MM-YYYY')}`}</p>
                               <p className="catalog-item__data-price">{`${guitar.price}₽`}</p>
                             </div>
                           </div>
-                          <div className="catalog-item__buttons"><Link className="button button--small button--black-border" aria-label="Редактировать товар" to={`${AppRoute.Edit}`}>Редактировать</Link>
-                            <button className="button button--small button--black-border" type="submit" aria-label="Удалить товар" >Удалить</button>
+                          <div className="catalog-item__buttons"><Link className="button button--small button--black-border" aria-label="Редактировать товар" to={`${AppRoute.Add}/${index}`}>Редактировать</Link>
+                            <button className="button button--small button--black-border" type="submit" aria-label="Удалить товар">Удалить</button>
                           </div>
                         </li>
                       );
@@ -182,17 +198,21 @@ function ProductList(): JSX.Element {
                 </ul>
               </div>
             </div>
-            <button className="button product-list__button button--red button--big">Добавить новый товар</button>
+            <Link className="button product-list__button button--red button--big" to={`${AppRoute.Add}/-1`}>Добавить новый товар</Link>
             <div className="pagination product-list__pagination">
               <ul className="pagination__list">
-                <li className="pagination__page pagination__page--active"><a className="link pagination__page-link" href="1">1</a>
-                </li>
-                <li className="pagination__page"><a className="link pagination__page-link" href="2">2</a>
-                </li>
-                <li className="pagination__page"><a className="link pagination__page-link" href="3">3</a>
-                </li>
-                <li className="pagination__page pagination__page--next" id="next"><a className="link pagination__page-link" href="2" >Далее</a>
-                </li>
+                {
+                  paginationArray.map((page) => {
+                    const keyValue = `${page}`;
+                    return (
+                      <div key={keyValue} >
+                        <li className={currentPage === page ? 'pagination__page pagination__page--active' : 'pagination__page pagination__page'}> <div className="link pagination__page-link" onClick={() => setCurrentPage(page)}>{page}</div>
+                        </li>
+                      </div>
+                    );
+                  })
+                }
+                {nextCount + 1 < maxNextCount ? <li className="pagination__page pagination__page--next" id="next"><div className="link pagination__page-link" onClick={nextPaginationHandler} >Далее</div></li> : ''}
               </ul>
             </div>
           </div>

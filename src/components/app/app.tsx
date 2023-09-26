@@ -3,16 +3,19 @@ import ProductList from '../../pages/product-list/product-list';
 import Product from '../../pages/product/product';
 import Login from '../../pages/login/login';
 import Registration from '../../pages/registration/registration';
-import EditItem from '../../pages/edit-item/edit-item';
 import NotFound from '../../pages/not-found/not-found';
 import AddItem from '../../pages/add-item/add-item';
-import { AppRoute, AuthorizationStatus } from '../../const';
+import { AppRoute } from '../../const';
 import PrivateRoute from '../private-route/private-route';
 import HistoryRouter from '../history-route/history-route';
 import browserHistory from '../../utils/browser-history';
+import { useAppSelector } from '../../hooks';
 
 
 function App(): JSX.Element {
+
+  const authorizationStatus = useAppSelector((state) => state.authorizationStatus);
+
   return (
     <HistoryRouter history={browserHistory}>
       <Routes>
@@ -25,22 +28,12 @@ function App(): JSX.Element {
           element={<Product />}
         />
         <Route
-          path={AppRoute.Add}
+          path={`${AppRoute.Add}/:index`}
           element={
             <PrivateRoute
-              authorizationStatus={AuthorizationStatus.NoAuth}
+              authorizationStatus={authorizationStatus}
             >
               <AddItem />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path={AppRoute.Edit}
-          element={
-            <PrivateRoute
-              authorizationStatus={AuthorizationStatus.NoAuth}
-            >
-              <EditItem />
             </PrivateRoute>
           }
         />

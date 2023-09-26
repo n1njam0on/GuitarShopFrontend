@@ -1,5 +1,4 @@
 import { createReducer } from '@reduxjs/toolkit';
-import { guitars } from '../mocs/guitars';
 import { loadGuitars, requireAuthorization, setUser} from './action';
 import { AuthorizationStatus } from '../const';
 import { Guitar } from '../types/guitar-type';
@@ -14,7 +13,7 @@ type InitialState = {
 
 
 const initialState: InitialState = {
-  guitars,
+  guitars: [],
   authorizationStatus: AuthorizationStatus.Unknown,
   error: null,
   user: {

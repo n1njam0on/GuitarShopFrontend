@@ -2,7 +2,7 @@ import { GuitarType } from './guitar-type.enum';
 import { StringsNumber } from './strings-number.enum';
 
 export type Guitar = {
-  id: string;
+  guitarId: string;
   title: string;
   description: string;
   photo: string;
@@ -10,5 +10,5 @@ export type Guitar = {
   vendorCode: string;
   stringsNumber: StringsNumber;
   price: number;
-  createdAt: string;
+  creationDate: string;
 }

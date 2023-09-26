@@ -17,6 +17,11 @@ export enum APIRoute {
   Guitars = '/guitars',
   Login = '/user/login',
   CheckAuth = '/user/check',
+  Registration ='/user/register',
+  CreateGuitar = '/guitars/create',
+  UpdateGuitar = 'guitars/update',
+  DeleteGuitar = 'guitars',
+  UploadFile = 'files/upload'
 }
 
 

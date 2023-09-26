@@ -1,8 +1,9 @@
-import { Link } from 'react-router-dom';
+import { Link} from 'react-router-dom';
 import { AppRoute, AuthorizationStatus } from '../../const';
 import { useAppDispatch, useAppSelector } from '../../hooks';
 import { dropToken } from '../../services/token';
-import { fetchGuitarsAction } from '../../store/api-actions';
+import { requireAuthorization } from '../../store/action';
+
 
 function Header(): JSX.Element {
 
@@ -13,7 +14,7 @@ function Header(): JSX.Element {
 
   const signOutHandler = () => {
     dropToken();
-    dispatch(fetchGuitarsAction(''));
+    dispatch(requireAuthorization(AuthorizationStatus.NoAuth));
   };
 
   return (
